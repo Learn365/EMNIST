@@ -1,8 +1,9 @@
 output.png
+resized.png
 samples
-Graph
-bin_2conv
-.git
-bin/mapping.p
-bin/model.h5
-bin/model.yaml
+#Graph
+#bin_2conv
+#.git
+#bin/mapping.p
+#bin/model.h5
+#bin/model.yaml
