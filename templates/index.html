@@ -20,10 +20,11 @@
         <input type="button" id="clear_button" value="Clear" style="">
     </div>
     <div class="centered">
+        <img id="preview" src="" width="280" height="280" alt="No image preview">
+    </div>
+    <div class="centered">
         <form method="post" action="/" enctype="multipart/form-data" id="image_form">
-            <div class="form-group">
-                <input type="file" name="file" onchange="previewFile()">
-            </div>
+            <input class="predict_upload" type="file" id="file" name="file">
         </form>
     </div>
     <div id="loading" style="display: none" class="centered">
@@ -38,11 +39,7 @@
     <script type="text/javascript">
         $(".predict_button").click(function() {
             $('#result').text('  Predicting...');
-            var $SCRIPT_ROOT = {
-                {
-                    request.script_root | tojson | safe
-                }
-            };
+            var $SCRIPT_ROOT = {{request.script_root | tojson | safe}};
             var canvasObj = document.getElementById("canvas");
             var img = canvasObj.toDataURL('image/png');
             $.ajax({
@@ -55,9 +52,13 @@
             });
         });
 
-        function previewFile() {
+        $(".predict_upload").change(function(){
+            var $SCRIPT_ROOT = {{request.script_root | tojson | safe}};
+
+            // https://stackoverflow.com/questions/5392344/sending-multipart-formdata-with-jquery-ajax
             var file = document.querySelector('input[type=file]').files[0];
             var reader = new FileReader();
+            var data = new FormData($('#image_form')[0]);
 
             reader.addEventListener("load", function() {
                 $("#preview").attr("src", reader.result);
@@ -67,29 +68,24 @@
                 reader.readAsDataURL(file);
             }
 
-            $("#prediction").hide();
+            // $("#prediction").hide();
             $("#loading").show();
-            $("#image_form").submit();
-        }
-
-        $(document).ready(function() {
-            var error = {
-                {
-                    error
+            // $("#image_form").submit();
+            $.ajax({
+                url: $SCRIPT_ROOT + "/predict_upload/",
+                data: data,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST', // For jQuery < 1.9
+                success: function(data){
+                    // alert(data);
+                    // console.log(data);
+                    $("#loading").hide();
+                    $('#result').text('Predicted Output: ' + data);
                 }
-            }
-            var results = {
-                {
-                    results
-                }
-            };
-            if (results == true) {
-                $("#prediction").show();
-                $("#preview").attr("src", "data:image/png;base64,{{ image_b64 }}");
-            }
-            if (error == true) {
-                $("#error").show();
-            }
+            });
         });
     </script>
 </body>

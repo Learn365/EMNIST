@@ -5,6 +5,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from flask import Flask, request, render_template
 from scipy.misc import imsave, imread, imresize
 import numpy as np
+from io import BytesIO
 import argparse
 from keras.models import model_from_yaml
 import re
@@ -68,6 +69,56 @@ def predict():
 
     # get data from drawing canvas and save as image
     parseImage(request.get_data())
+
+    # read parsed image back in 8-bit, black and white mode (L)
+    x = imread('output.png', mode='L')
+    x = np.invert(x)
+
+    ### Experimental
+    # Crop on rows
+    # x = crop(x)
+    # x = x.T
+    # Crop on columns
+    # x = crop(x)
+    # x = x.T
+
+    # Visualize new array
+    imsave('resized.png', x)
+    x = imresize(x,(28,28))
+
+    # reshape image data for use in neural network
+    x = x.reshape(1,28,28,1)
+
+    # Convert type to float32
+    x = x.astype('float32')
+
+    # Normalize to prevent issues with model
+    x /= 255
+
+    # Predict from model
+    out = model.predict(x)
+
+    # Generate response
+    response = chr(mapping[(int(np.argmax(out, axis=1)[0]))])
+    return response
+
+@app.route('/predict_upload/',methods=["GET","POST"])
+def predict_upload():
+    ''' Called when user presses the predict button.
+        Processes the canvas and handles the image.
+        Passes the loaded image into the neural network and it makes
+        class prediction.
+    '''
+
+    def parseImage(imgData):
+        # parse canvas bytes and save as output.png
+        #with open('output.png','wb') as output:
+        #    output.write(BytesIO(imgData))
+        imgData.save("output.png")
+
+    f = request.files['file']
+    # image_content = f.read()
+    parseImage(f)
 
     # read parsed image back in 8-bit, black and white mode (L)
     x = imread('output.png', mode='L')

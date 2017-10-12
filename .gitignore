@@ -8,3 +8,4 @@ samples
 #bin/model.h5
 #bin/model.yaml
 .idea/
+.vscode/
