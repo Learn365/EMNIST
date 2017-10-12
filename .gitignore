@@ -7,3 +7,4 @@ samples
 #bin/mapping.p
 #bin/model.h5
 #bin/model.yaml
+.idea/
